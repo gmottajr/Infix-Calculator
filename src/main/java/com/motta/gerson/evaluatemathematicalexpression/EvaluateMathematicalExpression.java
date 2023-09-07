@@ -382,15 +382,7 @@ public class EvaluateMathematicalExpression {
                 if (operatorKeys.contains(info)) {
                     if (left != null && right != null) 
                     {
-                        BiFunction<Double, Double, Double> operatorFunction = operations.get(info);
-                        if (operatorFunction != null) {
-                            result = operatorFunction.apply(left.evaluate(), right.evaluate());
-                        } 
-                        else 
-                        {
-                            System.out.println("Error!");
-                        }
-                        //result = operations.get(info).apply(left.evaluate(), right.evaluate());
+                        result = operations.get(info).apply(left.evaluate(), right.evaluate());
                     }
 
                     if (left != null && right == null) {
