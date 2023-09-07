@@ -1,8 +1,6 @@
 # Infix-Calculator
 Algorithm exercise: Module that evaluates a string that contains an arithmetic expression
 
-Certainly! Here's an updated README file with explanations for the `popConnectPush` and `infixExpressionToTree` methods, formatted in a code-style README:
-
 ```markdown
 # Infix Calculator
 
