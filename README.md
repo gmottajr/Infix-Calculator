@@ -112,9 +112,6 @@ The project includes JUnit tests to ensure the correctness of the calculator. Yo
 
 Contributions are welcome! If you find any issues or have suggestions for improvements, please open an issue or submit a pull request.
 
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 🚀 Happy calculating! 🧮
 ```
