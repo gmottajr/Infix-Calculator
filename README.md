@@ -113,5 +113,3 @@ Contributions are welcome! If you find any issues or have suggestions for improv
 
 🚀 Happy calculating! 🧮
 ```
-
-This README file now includes explanations for the `popConnectPush` and `infixExpressionToTree` methods, providing a complete overview of the project's main methods and their functionalities.
