@@ -55,7 +55,7 @@ public class EvaluateMathematicalExpressionShould {
     @ParameterizedTest
     @ValueSource(strings = {"1", "2", "5", "8", "9", "10", "40"})
     public void isOperandReturnsTrueForNumericValues(String value) {
-        assertTrue(EvaluateMathematicalExpression.isOperand(value), "isOperand test for " + value);
+        assertTrue(MathExpressionEvaluator.isOperand(value), "isOperand test for " + value);
     }
 
     /**
@@ -65,7 +65,7 @@ public class EvaluateMathematicalExpressionShould {
     @ValueSource(strings = {ADDITION_OPERATOR, SUBTRACTION_OPERATOR, MULTIPLICATION_OPERATOR, DIVISION_OPERATOR})
     public void isOperatorReturnsTrueWhenItsParameterIsOneOfTheOperatorsConst(String value) {
         System.out.println("isOperator");
-        assertTrue(EvaluateMathematicalExpression.isOperator(value));
+        assertTrue(MathExpressionEvaluator.isOperator(value));
     }
 
     /**
@@ -75,15 +75,15 @@ public class EvaluateMathematicalExpressionShould {
     public void testNormalizeElementsTokenizing() {
         System.out.println("normalizeElementsTokenizing");
         String expression = "4 + 5 * (5 -3)/ -34";
-        List<String> expResult = Arrays.asList("4", "+", "5", "*", "(", "5", "-3", ")", "/", "-34");
-        List<String> result = EvaluateMathematicalExpression.normalizeElementsTokenizing(expression);
+        List<String> expResult = Arrays.asList("4", "+", "5", "*", "(", "5", "+", "-3", ")", "/", "-34");
+        List<String> result = MathExpressionEvaluator.normalizeElementsTokenizing(expression);
         assertLinesMatch(expResult, result);
     }
     
     @ParameterizedTest
     @ValueSource(strings = {ADDITION_OPERATOR, SUBTRACTION_OPERATOR, MULTIPLICATION_OPERATOR, DIVISION_OPERATOR})
     public void testOperatorPriorityContainsOperators(String value) {
-        assertTrue(EvaluateMathematicalExpression.operatorPriority.containsKey(value));
+        assertTrue(MathExpressionEvaluator.operatorPriority.containsKey(value));
     }
 
     @ParameterizedTest
@@ -94,19 +94,19 @@ public class EvaluateMathematicalExpressionShould {
         DIVISION_OPERATOR + ", 1"
     })
     public void testOperatorPriorityValues(String operator, int expectedPriority) {
-        int actualPriority = EvaluateMathematicalExpression.operatorPriority.get(operator);
+        int actualPriority = MathExpressionEvaluator.operatorPriority.get(operator);
         assertEquals(expectedPriority, actualPriority, "Operator priority test for " + operator);
     }
 
     @Test
     public void testOperatorPrioritySize() {
-        assertEquals(4, EvaluateMathematicalExpression.operatorPriority.size());
+        assertEquals(5, MathExpressionEvaluator.operatorPriority.size());
     }
 
     @BeforeAll
     public static void printOperatorPriority() {
         System.out.println("Operator Priority Map:");
-        EvaluateMathematicalExpression.operatorPriority.forEach((key, value) -> System.out.println(key + ": " + value));
+        MathExpressionEvaluator.operatorPriority.forEach((key, value) -> System.out.println(key + ": " + value));
     }
     
     
@@ -133,12 +133,18 @@ public class EvaluateMathematicalExpressionShould {
             "-(-5 + 2), 3",
             "(3 + 2), 5",
             "(3 + 5) * 10, 80",
-            "12* 123/(-5 + 2), -492"
+            "12* 123/(-5 + 2), -492",
+            "((80 - (19))), 61.0",
+            "(1 - 2) + -(-(-(-4))), 3.0",
+            "(123.45*(678.90 / (-2.5+ 11.5)-(((80 -(19))) *33.25)) / 20), -12053.760875",
+            "-(123.45*(678.90 / (-2.5+ 11.5)-(((80 -(19))) *33.25)) / 20), 12053.760875",
+            "(123.45*(678.90 / (-2.5+ 11.5)-(((80 -(19))) *33.25))), -241075.2175",
+            "(13 - 2)/ -(-11), 1",
     })
     public void evaluateMathematicalExpression(String expression, double expected) {
         double result;
         System.out.println("****** Expression: " + expression);
-        EvaluateMathematicalExpression evaluator = new EvaluateMathematicalExpression();
+        MathExpressionEvaluator evaluator = new MathExpressionEvaluator();
         result = evaluator.evaluate(expression);
         System.out.println("result: " + result);
         //assertEquals(expected, result);
@@ -155,7 +161,7 @@ public class EvaluateMathematicalExpressionShould {
     public void evaluateMathematicalExpression2(String expression, double expected) {
         double result;
         System.out.println("****** Expression: " + expression);
-        EvaluateMathematicalExpression evaluator = new EvaluateMathematicalExpression();
+        MathExpressionEvaluator evaluator = new MathExpressionEvaluator();
         result = evaluator.evaluate(expression);
         System.out.println("result: " + result);
         //assertEquals(expected, result);
