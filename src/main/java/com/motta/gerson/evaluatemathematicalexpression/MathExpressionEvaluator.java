@@ -3,13 +3,7 @@
  */
 package com.motta.gerson.evaluatemathematicalexpression;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Stack;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
@@ -175,7 +169,7 @@ public class MathExpressionEvaluator {
         if (adjustingPrecedence != null)
         {
             nodeStack.push(adjustingPrecedence);
-            if (adjustingPrecedence.isNegative() && opStack.size() > 0 && !opStack.peek().isAddition())
+            if (adjustingPrecedence.isNegative() && !opStack.isEmpty() && !opStack.peek().isAddition())
             {
                 makeItAddition(opStack);
                 //opStack.push(new OperatorNode(ADDITION_OPERATOR, false, false));
@@ -223,8 +217,7 @@ public class MathExpressionEvaluator {
             if (isOperator(token)) 
             {
                 boolean nodeStackPeekIsNegative = !nodeStack.isEmpty() && nodeStack.peek().isNegative();
-                String nodeStackPeekInfo = !nodeStack.isEmpty() ? nodeStack.peek().getInfo() : "";
-                boolean operatorsStackPeekIsAddition = !operatorsStack.isEmpty() && operatorsStack.peek().isAddition();
+
                 if (token.equals(ADDITION_OPERATOR) && 
                         !operatorsStack.isEmpty() && 
                         operatorsStack.peek().isAddition() && 
@@ -273,7 +266,7 @@ public class MathExpressionEvaluator {
             else if (token.equals(CLOSE_PARENTHESIS)) 
             {
                 boolean openParenthesisPopped = false;
-                if(operatorsStack.size() > 0 && operatorsStack.peek().getInfo().equals((OPEN_PARENTHESIS)))
+                if(!operatorsStack.isEmpty() && operatorsStack.peek().getInfo().equals((OPEN_PARENTHESIS)))
                 {
                     popConnectPush(operatorsStack, nodeStack, true);
                     openParenthesisPopped = true;
@@ -359,7 +352,7 @@ public class MathExpressionEvaluator {
 
         protected ExpressionBase parent;
         protected boolean invertSignal;
-        protected String info;
+        protected final String info;
 
         protected ExpressionBase(String info) {
             this.info = info;

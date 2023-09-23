@@ -26,9 +26,6 @@ public class EvaluateMathematicalExpressionShould {
     private static final String ADDITION_OPERATOR = "+";
     private static final String MULTIPLICATION_OPERATOR = "*";
     private static final String DIVISION_OPERATOR = "/";
-    private static final String OPEN_PARENTHESIS = "(";
-    private static final String CLOSE_PARENTHESIS = ")";
-    private static final String OPERATORS_CONST = "-+*/^";
     
     public EvaluateMathematicalExpressionShould() {
     }
