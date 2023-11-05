@@ -20,14 +20,14 @@ import org.junit.jupiter.params.provider.ValueSource;
  *
  * @author Jr
  */
-public class EvaluateMathematicalExpressionShould {
+public class EvaluateMathematicalExpressionShouldTest {
     
     private static final String SUBTRACTION_OPERATOR = "-";
     private static final String ADDITION_OPERATOR = "+";
     private static final String MULTIPLICATION_OPERATOR = "*";
     private static final String DIVISION_OPERATOR = "/";
     
-    public EvaluateMathematicalExpressionShould() {
+    public EvaluateMathematicalExpressionShouldTest() {
     }
     
     @BeforeAll
@@ -153,7 +153,9 @@ public class EvaluateMathematicalExpressionShould {
     @CsvSource({
             //"(-5 + 2), -3",
             //"-(-5 + 2), 3",
-            "13 + 112, 125",
+            "1 - -(-(-(-4))), -3",
+            "123.45*(678.90 / (-2.5+ 11.5)-(80 -19) *33.25) / 20 + 11, -12042.760875",
+            "(123.45*(678.90 / (-2.5+ 11.5)-(((80 -(19))) *33.25)) / 20) - (123.45*(678.90 / (-2.5+ 11.5)-(((80 -(19))) *33.25)) / 20) + (13 - 2)/ -(-11) , 1"
     })
     public void evaluateMathematicalExpression2(String expression, double expected) {
         double result;
