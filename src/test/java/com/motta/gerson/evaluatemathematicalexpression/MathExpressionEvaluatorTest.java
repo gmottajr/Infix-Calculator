@@ -144,8 +144,15 @@ public class MathExpressionEvaluatorTest {
         //assertEquals(expected, result);
         assertEquals(expected, result, "Test failed for input: " + expression);
     }
-    
-    
+
+    @Test
+    public void tempTest() {
+        // (123.45*(678.90 / (-2.5+ 11.5)-(((80 -(19))) *33.25)) / 20)
+        String expr = "(((80 -(19))) *33.25)";
+        MathExpressionEvaluator evaluator = new MathExpressionEvaluator();
+        System.out.println(evaluator.evaluate(expr));
+    }
+
     @ParameterizedTest
     @CsvSource({
             //"(-5 + 2), -3",
