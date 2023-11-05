@@ -217,7 +217,7 @@ public class MathExpressionEvaluator {
         {
             if(isOperator && hasParent)
             {
-                return (OperatorNode)operatorsStack.peek().getParent();
+                return (MathNode) operatorsStack.peek().getParent();
             }
             else
             {
@@ -326,9 +326,9 @@ public class MathExpressionEvaluator {
             {
                 if (!nodeStack.isEmpty() && 
                         !nodeStack.peek().isNumber()
-                        && !((OperatorNode) nodeStack.peek()).isFull())
+                        && !((MathNode) nodeStack.peek()).isFull())
                 {
-                    ((OperatorNode) nodeStack.peek()).balanceNode(new OperandNode(token));
+                    ((MathNode) nodeStack.peek()).balanceNode(new OperandNode(token));
                 } 
                 else 
                 {
@@ -528,11 +528,11 @@ public class MathExpressionEvaluator {
                         result = right.evaluate();
                     }
                 }
-                else if (this.info.equals((OPEN_PARENTHESIS)))
+                else if (this.info.equals(OPEN_PARENTHESIS))
                 {
                     if (left != null && right != null)
                     {
-                        boolean areThemSiblings = (left.parent.equals(right.parent));
+                        boolean areThemSiblings = (left.hasParent() && left.parent.equals(right.parent));
                         if (areThemSiblings)
                         {
                             double rstL = left.evaluate();
@@ -614,8 +614,6 @@ public class MathExpressionEvaluator {
 
     public class ParenthesesNode extends MathNode
     {
-        protected OperatorNode left;
-        protected OperatorNode right;
 
         protected List<OperatorNode> operatorChildren = new ArrayList<>();
         private ParenthesesNode(String info, boolean pInvertSignal, MathNode parent) {
@@ -649,20 +647,12 @@ public class MathExpressionEvaluator {
 
         @Override
         public OperatorNode getLeft() {
-            return left;
-        }
-
-        public void setLeft(OperatorNode left) {
-            this.left = left;
+            return (OperatorNode) left;
         }
 
         @Override
         public OperatorNode getRight() {
-            return right;
-        }
-
-        public void setRight(OperatorNode right) {
-            this.right = right;
+            return (OperatorNode) right;
         }
 
         public List<OperatorNode> getOperatorChildren() {

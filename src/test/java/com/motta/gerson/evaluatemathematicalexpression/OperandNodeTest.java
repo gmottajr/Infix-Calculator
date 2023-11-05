@@ -2,7 +2,7 @@ package com.motta.gerson.evaluatemathematicalexpression;
 
 import com.motta.gerson.evaluatemathematicalexpression.MathExpressionEvaluator.OperandNode;
 import com.motta.gerson.evaluatemathematicalexpression.MathExpressionEvaluator.OperatorNode;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
