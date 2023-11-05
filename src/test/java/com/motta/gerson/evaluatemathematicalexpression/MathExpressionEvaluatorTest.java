@@ -20,15 +20,12 @@ import org.junit.jupiter.params.provider.ValueSource;
  *
  * @author Jr
  */
-public class EvaluateMathematicalExpressionShould {
+public class MathExpressionEvaluatorTest {
     
     private static final String SUBTRACTION_OPERATOR = "-";
     private static final String ADDITION_OPERATOR = "+";
     private static final String MULTIPLICATION_OPERATOR = "*";
     private static final String DIVISION_OPERATOR = "/";
-    
-    public EvaluateMathematicalExpressionShould() {
-    }
     
     @BeforeAll
     public static void setUpClass() {
