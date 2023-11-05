@@ -22,7 +22,7 @@ public class MathExpressionEvaluator {
     private static final String CLOSE_PARENTHESIS = ")";
     private static final String OPERATORS_CONST = "-+*/^";
 
-    public static final Map<String, Integer> operatorPriority = new HashMap<String, Integer>() {
+    public static final Map<String, Integer> operatorPriority = new HashMap<>() {
         {
             put(ADDITION_OPERATOR, 0);
             put(SUBTRACTION_OPERATOR, 0);
@@ -78,14 +78,38 @@ public class MathExpressionEvaluator {
         return result;
     }
 
-    private boolean popConnectPush(Stack<OperatorNode> opStack, Stack<ExpressionBase> nodeStack, boolean isClosing) {
+    public  OperatorNode buildOperatorNode(String pInfo, boolean pIsParenthesized, boolean pInvertSignal, OperatorNode pParent)
+    {
+        if (pParent == null)
+        {
+            return new OperatorNode(pInfo, pIsParenthesized, pInvertSignal);
+        }
+        else
+        {
+            return new OperatorNode(pInfo, pIsParenthesized, pInvertSignal, pParent);
+        }
+    }
+
+    public OperandNode buildOperandNode(OperatorNode parent, String info)
+    {
+        if (parent == null)
+        {
+            return new OperandNode(info);
+        }
+        else
+        {
+            return  new OperandNode(parent, info);
+        }
+    }
+
+    private boolean popConnectPush(Stack<MathNode> opStack, Stack<ExpressionBase> nodeStack, boolean isClosing) {
         
         if (!isClosing && !opStack.isEmpty() && opStack.peek().getIsParenthesized() && nodeStack.size() <= 1) 
         {
             return false;
         }
 
-        OperatorNode temp = opStack.pop();
+        MathNode temp = opStack.pop();
         ExpressionBase adjustingPrecedence = null;
 
         if (temp != null)
@@ -95,8 +119,8 @@ public class MathExpressionEvaluator {
                 ExpressionBase operandTempR = nodeStack.pop();
 
                 if (temp.isMaxPrecedence() && (operandTempR instanceof OperatorNode)
-                        && !((OperatorNode) operandTempR).getIsParenthesized()
-                        && operatorPriority.get(temp.getInfo()) > operatorPriority.get(operandTempR.getInfo())) 
+                        && !(operandTempR.getIsParenthesized()
+                        && operatorPriority.get(temp.getInfo()) > operatorPriority.get(operandTempR.getInfo())))
                 {
                     
                     temp.setRight(((OperatorNode) operandTempR).getLeft());
@@ -130,7 +154,7 @@ public class MathExpressionEvaluator {
 
             if (temp.isFull() && (temp.getIsParenthesized() || temp.isMaxPrecedence() ||
                     temp.getRight().isNumber() && temp.getRight().hasParent() &&
-                            ((OperatorNode)temp.getRight().getParent()).getIsParenthesized())
+                            temp.getRight().getParent().getIsParenthesized())
             )
             {
                 if(temp.getLeft() != null && temp.getRight() != null && temp.getLeft().getParent() != temp.getRight().getParent())
@@ -169,7 +193,12 @@ public class MathExpressionEvaluator {
         if (adjustingPrecedence != null)
         {
             nodeStack.push(adjustingPrecedence);
-            if (adjustingPrecedence.isNegative() && !opStack.isEmpty() && !opStack.peek().isAddition())
+
+            Stack<MathNode> filteredStack = opStack.stream()
+                    .filter(n -> !n.info.equals((OPEN_PARENTHESIS)))
+                    .collect(Collectors.toCollection(Stack::new));
+
+            if (adjustingPrecedence.isNegative() && !opStack.isEmpty() && !filteredStack.isEmpty() && !filteredStack.peek().isAddition())
             {
                 makeItAddition(opStack);
                 //opStack.push(new OperatorNode(ADDITION_OPERATOR, false, false));
@@ -179,7 +208,7 @@ public class MathExpressionEvaluator {
         return true;
     }
 
-    private static OperatorNode checkIsParenthesized(Stack<OperatorNode> operatorsStack) {
+    private static MathNode checkIsParenthesized(Stack<MathNode> operatorsStack) {
         boolean notEmpty = !operatorsStack.isEmpty();
         boolean operatorsStackPeekIsParenthesized = notEmpty && operatorsStack.peek().getIsParenthesized();
         boolean isOperator = notEmpty && operatorsStack.peek().isOperator();
@@ -199,7 +228,7 @@ public class MathExpressionEvaluator {
             return null;
     }
 
-    private static boolean popOperatorsPushToNode(Stack<OperatorNode> operatorsStack, Stack<ExpressionBase> nodeStack, String token) {
+    private static boolean popOperatorsPushToNode(Stack<MathNode> operatorsStack, Stack<ExpressionBase> nodeStack, String token) {
         return !operatorsStack.isEmpty() && !nodeStack.isEmpty()
                 && !operatorsStack.peek().getInfo().equals(OPEN_PARENTHESIS)
                 && operatorPriority.get(operatorsStack.peek().getInfo()) >= operatorPriority.get(token);
@@ -208,7 +237,7 @@ public class MathExpressionEvaluator {
     private ExpressionBase infixExpressionToTree(String exp) {
         List<String> tokens = normalizeElementsTokenizing(exp);
 
-        Stack<OperatorNode> operatorsStack = new Stack<>();
+        Stack<MathNode> operatorsStack = new Stack<>();
         Stack<ExpressionBase> nodeStack = new Stack<>();
         FinalAdjust(tokens);
 
@@ -246,8 +275,7 @@ public class MathExpressionEvaluator {
             else if (token.equals(OPEN_PARENTHESIS)) 
             {
                 
-                OperatorNode gotNode = new OperatorNode(token,
-                        true,
+                ParenthesesNode gotNode = new ParenthesesNode(token,
                         false,
                 checkIsParenthesized(operatorsStack));
                 
@@ -257,8 +285,7 @@ public class MathExpressionEvaluator {
             else if (token.equals(INVERT_SIGNAL_PARENTHESIS))
             {
                 
-                operatorsStack.push(new OperatorNode(OPEN_PARENTHESIS,
-                        true,
+                operatorsStack.push(new ParenthesesNode(OPEN_PARENTHESIS,
                         true,
                         checkIsParenthesized(operatorsStack)));
                 
@@ -283,12 +310,12 @@ public class MathExpressionEvaluator {
                 // Discard the '('
                 if (!openParenthesisPopped && (!operatorsStack.isEmpty() && operatorsStack.peek().getInfo().equals(OPEN_PARENTHESIS)))
                 {
-                    OperatorNode removingParenthese = operatorsStack.pop();
+                    MathNode removingParenthese = operatorsStack.pop();
                     List<ExpressionBase> filteredItems = nodeStack.stream()
                             .filter(item -> item.getParent() == removingParenthese)
-                            .collect(Collectors.toList());
+                            .toList();
 
-                    OperatorNode newParent = checkIsParenthesized(operatorsStack);
+                    MathNode newParent = checkIsParenthesized(operatorsStack);
 
                     for (ExpressionBase item : filteredItems) {
                         item.setParent(newParent);
@@ -332,7 +359,7 @@ public class MathExpressionEvaluator {
         return nodeStack.peek();
     }
 
-    private void makeItAddition(Stack<OperatorNode> operatorsStack)
+    private void makeItAddition(Stack<MathNode> operatorsStack)
     {
         operatorsStack.push(new OperatorNode(checkIsParenthesized(operatorsStack), ADDITION_OPERATOR));
     }
@@ -348,7 +375,7 @@ public class MathExpressionEvaluator {
         return root.evaluate();
     }
 
-    private abstract static class ExpressionBase {
+    public abstract class ExpressionBase {
 
         protected ExpressionBase parent;
         protected boolean invertSignal;
@@ -403,21 +430,22 @@ public class MathExpressionEvaluator {
         }
 
         public abstract boolean isOperand();
+        public abstract boolean isLeaf();
 
         public boolean isInvertSignal() {
             return invertSignal;
         }
     }
-    private abstract class MathNode extends ExpressionBase {
+    public  abstract class MathNode extends ExpressionBase {
 
-        private static final Set<String> operatorKeys = new HashSet<>(Set.of(
+        protected static final Set<String> operatorKeys = new HashSet<>(Set.of(
                 ADDITION_OPERATOR,
                 SUBTRACTION_OPERATOR,
                 MULTIPLICATION_OPERATOR,
                 DIVISION_OPERATOR
         ));
         
-        private static final Map<String, BiFunction<Double, Double, Double>> operations = new HashMap<>();
+        protected static final Map<String, BiFunction<Double, Double, Double>> operations = new HashMap<>();
 
         static {
             operations.put(ADDITION_OPERATOR, (x, y) -> x + y);
@@ -427,17 +455,19 @@ public class MathExpressionEvaluator {
             //operations.put("MultiplicationInvertOperator", (x, y) -> x * -y);
         }
 
-        private ExpressionBase left;
-        private ExpressionBase right;
+        protected ExpressionBase left;
+        protected ExpressionBase right;
 
         public MathNode(String info) {
             super(info);
         }
 
-        public MathNode(OperatorNode parent, String info) {
+        public MathNode(MathNode parent, String info) {
             super(parent, info);
         }
-        public Boolean isLeaf() {
+
+        @Override
+        public boolean isLeaf() {
             return left == null && right == null;
         }
 
@@ -449,6 +479,34 @@ public class MathExpressionEvaluator {
             if (right == null) {
                 setRight(value);
             }
+        }
+
+        public boolean isAddition() {
+            return (info.equals(ADDITION_OPERATOR));
+        }
+
+        public boolean isMaxPrecedence() {
+            int infoPriority = operatorPriority.get(this.getInfo());
+            final int  maxPriority;
+            if (!this.isOperator())
+            {
+               maxPriority = operatorPriority.values().stream().mapToInt(Integer::intValue).max().orElse(Integer.MIN_VALUE);
+            }
+            else
+            {
+
+               maxPriority = operatorPriority.entrySet()
+                       .stream()
+                       .filter(entry -> !entry.getKey().equals(OPEN_PARENTHESIS))
+                       .mapToInt(Map.Entry::getValue)
+                       .max()
+                       .orElse(Integer.MIN_VALUE);
+            }
+            return infoPriority == maxPriority;
+        }
+
+        public boolean isFull() {
+            return getRight() != null && getLeft() != null;
         }
 
         @Override
@@ -474,7 +532,7 @@ public class MathExpressionEvaluator {
                 {
                     if (left != null && right != null)
                     {
-                        boolean areThemSiblings = (left.parent == right.parent);
+                        boolean areThemSiblings = (left.parent.equals(right.parent));
                         if (areThemSiblings)
                         {
                             double rstL = left.evaluate();
@@ -553,7 +611,69 @@ public class MathExpressionEvaluator {
             return isNumber();
         }
     }
-    private class OperatorNode extends MathNode {
+
+    public class ParenthesesNode extends MathNode
+    {
+        protected OperatorNode left;
+        protected OperatorNode right;
+
+        protected List<OperatorNode> operatorChildren = new ArrayList<>();
+        private ParenthesesNode(String info, boolean pInvertSignal, MathNode parent) {
+            super(info);
+            this.parent = parent;
+            this.invertSignal = pInvertSignal;
+        }
+
+        @Override
+        public boolean getIsParenthesized() {
+            return true;
+        }
+
+        @Override
+        public double evaluate() {
+            double result = 0.0;
+
+            // Assuming operatorPriority is a static Map<String, Integer> that exists in your class
+            List<OperatorNode> sortedOperatorChildren = operatorChildren.stream()
+                    .sorted(Comparator.comparingInt(o -> operatorPriority.getOrDefault(o.getInfo(), Integer.MAX_VALUE)))
+                    .toList();
+
+            for (OperatorNode operator : sortedOperatorChildren) {
+                result += operator.evaluate();
+            }
+
+            result += super.evaluate();
+
+            return result;
+        }
+
+        @Override
+        public OperatorNode getLeft() {
+            return left;
+        }
+
+        public void setLeft(OperatorNode left) {
+            this.left = left;
+        }
+
+        @Override
+        public OperatorNode getRight() {
+            return right;
+        }
+
+        public void setRight(OperatorNode right) {
+            this.right = right;
+        }
+
+        public List<OperatorNode> getOperatorChildren() {
+            return operatorChildren;
+        }
+
+        public void addOperatorChildren(OperatorNode operatorChildren) {
+            this.operatorChildren.add(operatorChildren);
+        }
+    }
+    public  class OperatorNode extends MathNode {
 
         private final boolean isParenthesized;
 
@@ -563,14 +683,18 @@ public class MathExpressionEvaluator {
             invertSignal = pInvertSignal;
         }
 
-        private OperatorNode(String info, boolean pIsParenthesized, boolean pInvertSignal, OperatorNode parent) {
+        private OperatorNode(String info, boolean pIsParenthesized, boolean pInvertSignal, MathNode parent) {
             super(info);
             this.isParenthesized = pIsParenthesized;
             this.parent = parent;
+            if (this.parent instanceof ParenthesesNode)
+            {
+                ((ParenthesesNode)this.parent).addOperatorChildren(this);
+            }
             this.invertSignal = pInvertSignal;
         }
 
-        public OperatorNode(OperatorNode parent, String info)
+        public OperatorNode(MathNode parent, String info)
         {
             super(parent, info);
             this.isParenthesized = parent != null && parent.getIsParenthesized();
@@ -586,19 +710,6 @@ public class MathExpressionEvaluator {
         {
             return hasParent() && this.parent.getIsParenthesized();
         }
-        public boolean isAddition() {
-            return (info == ADDITION_OPERATOR);
-        }
-
-        public boolean isMaxPrecedence() {
-            int infoPriority = operatorPriority.get(this.getInfo());
-            int maxPriority = operatorPriority.values().stream().mapToInt(Integer::intValue).max().orElse(Integer.MIN_VALUE);
-            return infoPriority == maxPriority;
-        }
-
-        public boolean isFull() {
-            return getRight() != null && getLeft() != null;
-        }
 
         @Override
         public double evaluate() {
@@ -612,13 +723,13 @@ public class MathExpressionEvaluator {
             return false;
         }
     }
-    private class OperandNode extends ExpressionBase {
+    public  class OperandNode extends ExpressionBase {
 
         public OperandNode(String info) {
             super(info);
         }
 
-        public OperandNode(OperatorNode parent, String info) {
+        public OperandNode(MathNode parent, String info) {
             super(parent, info);
         }
 
@@ -626,7 +737,7 @@ public class MathExpressionEvaluator {
         public double getValue() {
             try
             {
-                return Double.valueOf(info);
+                return Double.parseDouble(info);
             }
             catch (NumberFormatException e) {
                 return 0;
@@ -653,6 +764,11 @@ public class MathExpressionEvaluator {
         public boolean isOperand()
         {
             return  (this instanceof OperandNode);
+        }
+
+        @Override
+        public boolean isLeaf() {
+            return true;
         }
 
     }
